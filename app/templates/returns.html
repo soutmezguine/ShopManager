@@ -1,0 +1,140 @@
+{% extends "layout.html" %}
+{% block title %}Returns{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Returns</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReturnModal">
+        Add Return
+    </button>
+</div>
+
+<div class="card shadow-sm p-3">
+    <table id="returnsTable" class="table table-striped table-hover" style="width:100%">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>RO</th>
+                <th>Parts</th>
+                <th>Vendor</th>
+                <th>Rep</th>
+                <th>Pickup Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Return Modal -->
+<div class="modal fade" id="addReturnModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Return</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('main.add_return') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">User</label>
+                            <select name="user_id" class="form-select" required>
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if user.id == current_user.id %}selected{% endif %}>{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="date" class="form-control" value="{{ now_date }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">RO</label>
+                            <input type="text" name="ro" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vendor</label>
+                            <select name="vendor_id" class="form-select" required>
+                                {% for vendor in vendors %}
+                                <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Parts</label>
+                            <textarea name="parts" class="form-control" required></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Rep</label>
+                            <input type="text" name="rep" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pickup Status</label>
+                            <select name="pickup_status" class="form-select">
+                                <option value="Pending">Pending</option>
+                                <option value="Picked Up">Picked Up</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Return</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var table = $('#returnsTable').DataTable({
+            ajax: {
+                url: '/api/returns',
+                dataSrc: ''
+            },
+            columns: [
+                { data: 'username' },
+                { data: 'date' },
+                { data: 'ro' },
+                { data: 'parts' },
+                { data: 'vendor_name' },
+                { data: 'rep' },
+                { data: 'pickup_status' },
+                {
+                    data: 'id',
+                    render: function(data) {
+                        return `<button class="btn btn-sm btn-danger delete-btn" data-id="${data}">Delete</button>`;
+                    }
+                }
+            ]
+        });
+
+        $('#returnsTable').on('click', '.delete-btn', function() {
+            var id = $(this).data('id');
+            if (confirm('Are you sure you want to delete this return?')) {
+                $.ajax({
+                    url: '/api/returns/delete/' + id,
+                    type: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    success: function() {
+                        table.ajax.reload();
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

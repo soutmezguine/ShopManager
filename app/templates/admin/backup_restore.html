@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}Backup & Restore{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Database Backup & Restore</h2>
+    <form action="{{ url_for('admin.backup_db') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-success">Create New Backup</button>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">Available Backups</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for backup in backups %}
+                <tr>
+                    <td>{{ backup }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.download_backup', filename=backup) }}" class="btn btn-sm btn-info text-white">Download</a>
+                            <form action="{{ url_for('admin.restore_db', filename=backup) }}" method="POST" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('WARNING: This will overwrite the current database. Are you sure?')">Restore</button>
+                            </form>
+                            <form action="{{ url_for('admin.delete_backup', filename=backup) }}" method="POST" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this backup file?')">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" class="text-center py-4 text-muted">No backups found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

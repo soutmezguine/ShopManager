@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h2>Settings</h2>
+<hr>
+
+<div class="row">
+    <!-- Categories -->
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Appointment Categories</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('admin.add_category') }}" method="POST" class="mb-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group">
+                        <input type="text" name="name" class="form-control" placeholder="New Category" required>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+                <ul class="list-group">
+                    {% for cat in categories %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ cat.name }}
+                        <form action="{{ url_for('admin.delete_category', id=cat.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete category?')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">No categories defined.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendors -->
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Vendors</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('admin.add_vendor') }}" method="POST" class="mb-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group">
+                        <input type="text" name="name" class="form-control" placeholder="New Vendor" required>
+                        <button type="submit" class="btn btn-success">Add</button>
+                    </div>
+                </form>
+                <ul class="list-group">
+                    {% for vendor in vendors %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ vendor.name }}
+                        <form action="{{ url_for('admin.delete_vendor', id=vendor.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete vendor?')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">No vendors defined.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

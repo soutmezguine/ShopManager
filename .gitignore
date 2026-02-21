@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+instance/
+backups/
+app.log
+*.db
+verification/
+test_*.py
+verify_*.py
+final_test.py
+cookie.txt

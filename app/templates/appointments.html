@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+{% block title %}Appointments{% endblock %}
+{% block styles %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<style>
+    #calendar { height: 800px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Appointments</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addApptModal">
+        Add Appointment
+    </button>
+</div>
+
+<div id="calendar" class="card shadow-sm p-3"></div>
+
+<!-- Add Appointment Modal -->
+<div class="modal fade" id="addApptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('main.add_appointment') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Customer Name</label>
+                        <input type="text" name="customer_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date & Time</label>
+                        <input type="datetime-local" name="date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category_id" class="form-select" required>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            editable: true,
+            events: '/api/appointments',
+            eventDrop: function(info) {
+                updateEvent(info.event);
+            },
+            eventResize: function(info) {
+                updateEvent(info.event);
+            },
+            eventClick: function(info) {
+                if (confirm("Delete appointment: " + info.event.title + "?")) {
+                    deleteEvent(info.event);
+                }
+            }
+        });
+        calendar.render();
+
+        function updateEvent(event) {
+            fetch('/api/appointments/update/' + event.id, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    date: event.start.toISOString()
+                })
+            });
+        }
+
+        function deleteEvent(event) {
+            fetch('/api/appointments/delete/' + event.id, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            }).then(() => event.remove());
+        }
+    });
+</script>
+{% endblock %}
