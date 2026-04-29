@@ -1,8 +1,16 @@
+const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const { logger, errorLogger } = require('../utils/logger');
 
-const dbPath = path.join(__dirname, '../data/shopmanager.db');
+const dataDir = path.join(__dirname, '../data');
+const dbPath = path.join(dataDir, 'shopmanager.db');
+
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+  logger.info(`Created database directory: ${dataDir}`);
+}
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     errorLogger.error({ message: 'Database connection failed', error: err.message });
