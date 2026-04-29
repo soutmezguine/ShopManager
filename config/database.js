@@ -23,7 +23,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
 db.run('PRAGMA foreign_keys = ON');
 
 function initializeDatabase() {
-  db.serialize(() => {
+  try {
+    // Enable foreign keys
+    db.run('PRAGMA foreign_keys = ON');
+
     // Users table
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
@@ -34,13 +37,7 @@ function initializeDatabase() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         last_login DATETIME
       )
-    `, (err) => {
-      if (err) {
-        errorLogger.error({ message: 'Error creating users table', error: err.message });
-      } else {
-        logger.info('Users table initialized');
-      }
-    });
+    `);
 
     // Appointments table
     db.run(`
@@ -59,13 +56,7 @@ function initializeDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
-    `, (err) => {
-      if (err) {
-        errorLogger.error({ message: 'Error creating appointments table', error: err.message });
-      } else {
-        logger.info('Appointments table initialized');
-      }
-    });
+    `);
 
     // Parts orders table
     db.run(`
@@ -83,13 +74,7 @@ function initializeDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
-    `, (err) => {
-      if (err) {
-        errorLogger.error({ message: 'Error creating parts_orders table', error: err.message });
-      } else {
-        logger.info('Parts orders table initialized');
-      }
-    });
+    `);
 
     // Todo list table
     db.run(`
@@ -102,13 +87,7 @@ function initializeDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
-    `, (err) => {
-      if (err) {
-        errorLogger.error({ message: 'Error creating todos table', error: err.message });
-      } else {
-        logger.info('Todos table initialized');
-      }
-    });
+    `);
 
     // Error logs table
     db.run(`
@@ -121,14 +100,13 @@ function initializeDatabase() {
         additional_info TEXT,
         logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
-    `, (err) => {
-      if (err) {
-        errorLogger.error({ message: 'Error creating error_logs table', error: err.message });
-      } else {
-        logger.info('Error logs table initialized');
-      }
-    });
-  });
+    `);
+
+    logger.info('Database tables initialized successfully');
+  } catch (error) {
+    errorLogger.error({ message: 'Database initialization failed', error: error.message });
+    throw error;
+  }
 }
 
 function getDb() {
