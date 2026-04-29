@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Manager - Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">Shop Manager</div>
+      <div class="nav-menu">
+        <a href="/" class="nav-link active" data-module="appointments">📅 Appointments</a>
+        <a href="/" class="nav-link" data-module="parts">📦 Parts Log</a>
+        <a href="/auth/logout" class="nav-link nav-logout">Logout</a>
+      </div>
+      <div class="nav-user">Welcome, <%= userName %></div>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Appointments Module (default) -->
+      <div id="appointments-module" class="module active">
+        <div class="module-header">
+          <h2>Appointment Book</h2>
+          <div class="view-controls">
+            <button class="view-btn active" data-view="daily">Daily</button>
+            <button class="view-btn" data-view="weekly">Weekly</button>
+            <button class="view-btn" data-view="monthly">Monthly</button>
+            <input type="date" id="appointment-date" class="date-picker">
+          </div>
+        </div>
+
+        <div class="appointments-container">
+          <div class="appointments-toolbar">
+            <button id="btn-add-appointment" class="btn btn-primary">+ Add Appointment</button>
+          </div>
+          <div id="appointments-list" class="appointments-list">
+            <!-- Appointments will be loaded here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Parts Module -->
+      <div id="parts-module" class="module">
+        <div class="module-header">
+          <h2>Parts Ordering Log</h2>
+        </div>
+
+        <div class="parts-container">
+          <div class="parts-toolbar">
+            <input type="text" id="parts-search" class="search-input" placeholder="Search by RO, Parts, Vendor, or Check #">
+            <button id="btn-add-part" class="btn btn-primary">+ Add Order</button>
+          </div>
+          <div class="parts-list-container">
+            <div id="parts-list" class="parts-list">
+              <!-- Parts orders will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar - Todo List -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h3>✓ To Do List</h3>
+      </div>
+      <div class="todo-container">
+        <div class="todo-input-group">
+          <input type="text" id="todo-input" class="todo-input" placeholder="Add a new task...">
+          <button id="btn-add-todo" class="btn btn-small">Add</button>
+        </div>
+        <div id="todo-list" class="todo-list">
+          <!-- Todos will be loaded here -->
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Modals -->
+  <div id="appointment-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Add Appointment</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="appointment-form" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="apt-date">Date *</label>
+            <input type="date" id="apt-date" required>
+          </div>
+          <div class="form-group">
+            <label for="apt-time">Time *</label>
+            <input type="time" id="apt-time" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="apt-customer">Customer Name *</label>
+          <input type="text" id="apt-customer" required>
+        </div>
+
+        <div class="form-group">
+          <label for="apt-phone">Phone Number</label>
+          <input type="tel" id="apt-phone">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="apt-year">Vehicle Year</label>
+            <input type="number" id="apt-year" min="1900" max="2100">
+          </div>
+          <div class="form-group">
+            <label for="apt-make">Make</label>
+            <input type="text" id="apt-make">
+          </div>
+          <div class="form-group">
+            <label for="apt-model">Model</label>
+            <input type="text" id="apt-model">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="apt-service">Service Required *</label>
+          <textarea id="apt-service" required rows="4"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="button" id="btn-delete-apt" class="btn btn-danger hidden">Delete</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Parts Modal -->
+  <div id="parts-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add Parts Order</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="parts-form" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="part-order-date">Order Date *</label>
+            <input type="date" id="part-order-date" required>
+          </div>
+          <div class="form-group">
+            <label for="part-ro">RO *</label>
+            <input type="text" id="part-ro" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="part-parts">Parts Ordered *</label>
+          <textarea id="part-parts" required rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="part-vendor">Vendor *</label>
+          <input type="text" id="part-vendor" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="part-arrival">Arrival Date</label>
+            <input type="date" id="part-arrival">
+          </div>
+          <div class="form-group">
+            <label for="part-cost">Cost</label>
+            <input type="number" id="part-cost" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="part-check">Check #</label>
+            <input type="text" id="part-check">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="button" id="btn-delete-part" class="btn btn-danger hidden">Delete</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/appointments.js"></script>
+  <script src="/js/parts.js"></script>
+  <script src="/js/todo.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
