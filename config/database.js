@@ -163,6 +163,7 @@ function initializeDatabase() {
           });
         });
       });
+    });
     } catch (error) {
       errorLogger.error({ message: 'Database initialization failed', error: error.message });
       reject(error);
