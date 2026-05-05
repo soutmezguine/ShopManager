@@ -18,8 +18,11 @@ router.get('/api/:viewType', requireLogin, async (req, res) => {
   const userId = req.session.userId;
 
   try {
-    let query = 'SELECT * FROM appointments WHERE user_id = ?';
-    let params = [userId];
+    let query = `SELECT a.*, u.full_name as created_by_name, u.username as created_by_username
+      FROM appointments a
+      LEFT JOIN users u ON a.user_id = u.id
+      WHERE 1=1`;
+    let params = [];
 
     if (viewType === 'daily' && date) {
       query += ' AND appointment_date = ?';
@@ -62,8 +65,11 @@ router.get('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const appointment = await dbGet(
-      'SELECT * FROM appointments WHERE id = ? AND user_id = ?',
-      [id, userId]
+      `SELECT a.*, u.full_name as created_by_name, u.username as created_by_username
+       FROM appointments a
+       LEFT JOIN users u ON a.user_id = u.id
+       WHERE a.id = ?`,
+      [id]
     );
 
     if (!appointment) {
@@ -145,8 +151,8 @@ router.put('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const appointment = await dbGet(
-      'SELECT * FROM appointments WHERE id = ? AND user_id = ?',
-      [id, userId]
+      'SELECT * FROM appointments WHERE id = ?',
+      [id]
     );
 
     if (!appointment) {
@@ -157,8 +163,8 @@ router.put('/api/:id', requireLogin, async (req, res) => {
       `UPDATE appointments 
        SET appointment_date = ?, appointment_time = ?, customer_name = ?, phone_number = ?, 
            vehicle_year = ?, vehicle_make = ?, vehicle_model = ?, service_required = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ? AND user_id = ?`,
-      [appointmentDate, appointmentTime, customerName, phoneNumber, vehicleYear, vehicleMake, vehicleModel, serviceRequired, id, userId]
+       WHERE id = ?`,
+      [appointmentDate, appointmentTime, customerName, phoneNumber, vehicleYear, vehicleMake, vehicleModel, serviceRequired, id]
     );
 
     logger.info('Appointment updated', { userId, appointmentId: id, customerName });
@@ -182,15 +188,15 @@ router.delete('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const appointment = await dbGet(
-      'SELECT * FROM appointments WHERE id = ? AND user_id = ?',
-      [id, userId]
+      'SELECT * FROM appointments WHERE id = ?',
+      [id]
     );
 
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
 
-    await dbRun('DELETE FROM appointments WHERE id = ? AND user_id = ?', [id, userId]);
+    await dbRun('DELETE FROM appointments WHERE id = ?', [id]);
 
     logger.info('Appointment deleted', { userId, appointmentId: id });
 

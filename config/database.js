@@ -99,8 +99,28 @@ function initializeDatabase() {
                 return;
               }
 
-              // Todo list table
+              // Returns table
               db.run(`
+                CREATE TABLE IF NOT EXISTS returns_orders (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  user_id INTEGER NOT NULL,
+                  return_date DATE NOT NULL,
+                  parts_returned TEXT NOT NULL,
+                  vendor TEXT NOT NULL,
+                  status TEXT DEFAULT 'Pending',
+                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                  FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+              `, (err) => {
+                if (err) {
+                  errorLogger.error({ message: 'Error creating returns_orders table', error: err.message });
+                  reject(err);
+                  return;
+                }
+
+                // Todo list table
+                db.run(`
                 CREATE TABLE IF NOT EXISTS todos (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
                   user_id INTEGER NOT NULL,

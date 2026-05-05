@@ -127,11 +127,13 @@ function renderAppointments(appointments) {
   appointments.forEach(apt => {
     const item = document.createElement('div');
     item.className = 'appointment-item';
+    const createdBy = apt.created_by_name || apt.created_by_username || 'Unknown';
     item.innerHTML = `
       <h4>${apt.customer_name}</h4>
       <div class="appointment-item-meta">
         <strong>${apt.appointment_date}</strong> at <strong>${apt.appointment_time}</strong>
       </div>
+      <div class="appointment-item-meta">Set by: <strong>${createdBy}</strong></div>
       ${apt.phone_number ? `<div class="appointment-item-meta">📱 ${apt.phone_number}</div>` : ''}
       ${apt.vehicle_year || apt.vehicle_make || apt.vehicle_model ? 
         `<div class="appointment-item-vehicle">${apt.vehicle_year || ''} ${apt.vehicle_make || ''} ${apt.vehicle_model || ''}</div>` 

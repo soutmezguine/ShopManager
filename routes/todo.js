@@ -17,8 +17,10 @@ router.get('/api', requireLogin, async (req, res) => {
 
   try {
     const todos = await dbAll(
-      'SELECT * FROM todos WHERE user_id = ? ORDER BY completed ASC, created_at DESC',
-      [userId]
+      `SELECT t.*, u.full_name as created_by_name, u.username as created_by_username
+       FROM todos t
+       LEFT JOIN users u ON t.user_id = u.id
+       ORDER BY t.completed ASC, t.created_at DESC`
     );
     res.json(todos);
   } catch (error) {
@@ -40,8 +42,11 @@ router.get('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const todo = await dbGet(
-      'SELECT * FROM todos WHERE id = ? AND user_id = ?',
-      [id, userId]
+      `SELECT t.*, u.full_name as created_by_name, u.username as created_by_username
+       FROM todos t
+       LEFT JOIN users u ON t.user_id = u.id
+       WHERE t.id = ?`,
+      [id]
     );
 
     if (!todo) {
@@ -98,8 +103,8 @@ router.put('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const todo = await dbGet(
-      'SELECT * FROM todos WHERE id = ? AND user_id = ?',
-      [id, userId]
+      'SELECT * FROM todos WHERE id = ?',
+      [id]
     );
 
     if (!todo) {
@@ -110,8 +115,8 @@ router.put('/api/:id', requireLogin, async (req, res) => {
     const updateCompleted = completed !== undefined ? completed : todo.completed;
 
     await dbRun(
-      'UPDATE todos SET task_text = ?, completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-      [updateTaskText, updateCompleted ? 1 : 0, id, userId]
+      'UPDATE todos SET task_text = ?, completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [updateTaskText, updateCompleted ? 1 : 0, id]
     );
 
     logger.info('Todo updated', { userId, todoId: id });
@@ -135,8 +140,8 @@ router.patch('/api/:id/toggle', requireLogin, async (req, res) => {
 
   try {
     const todo = await dbGet(
-      'SELECT * FROM todos WHERE id = ? AND user_id = ?',
-      [id, userId]
+      'SELECT * FROM todos WHERE id = ?',
+      [id]
     );
 
     if (!todo) {
@@ -146,8 +151,8 @@ router.patch('/api/:id/toggle', requireLogin, async (req, res) => {
     const newCompleted = todo.completed ? 0 : 1;
 
     await dbRun(
-      'UPDATE todos SET completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-      [newCompleted, id, userId]
+      'UPDATE todos SET completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [newCompleted, id]
     );
 
     logger.info('Todo toggled', { userId, todoId: id, completed: newCompleted });
@@ -171,15 +176,15 @@ router.delete('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const todo = await dbGet(
-      'SELECT * FROM todos WHERE id = ? AND user_id = ?',
-      [id, userId]
+      'SELECT * FROM todos WHERE id = ?',
+      [id]
     );
 
     if (!todo) {
       return res.status(404).json({ error: 'Todo not found' });
     }
 
-    await dbRun('DELETE FROM todos WHERE id = ? AND user_id = ?', [id, userId]);
+    await dbRun('DELETE FROM todos WHERE id = ?', [id]);
 
     logger.info('Todo deleted', { userId, todoId: id });
 

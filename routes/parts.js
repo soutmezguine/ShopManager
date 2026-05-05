@@ -137,8 +137,8 @@ router.put('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const order = await dbGet(
-      'SELECT * FROM parts_orders WHERE id = ? AND user_id = ?',
-      [id, userId]
+      'SELECT * FROM parts_orders WHERE id = ?',
+      [id]
     );
 
     if (!order) {
@@ -148,8 +148,8 @@ router.put('/api/:id', requireLogin, async (req, res) => {
     await dbRun(
       `UPDATE parts_orders 
        SET order_date = ?, ro = ?, parts_ordered = ?, vendor = ?, arrival_date = ?, cost = ?, check_number = ?, rep_name = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ? AND user_id = ?`,
-      [orderDate, ro, partsOrdered, vendor, arrivalDate || null, cost || null, checkNumber || null, repName || null, status || 'Pending', id, userId]
+       WHERE id = ?`,
+      [orderDate, ro, partsOrdered, vendor, arrivalDate || null, cost || null, checkNumber || null, repName || null, status || 'Pending', id]
     );
 
     logger.info('Parts order updated', { userId, orderId: id, ro });
@@ -173,15 +173,15 @@ router.delete('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const order = await dbGet(
-      'SELECT * FROM parts_orders WHERE id = ? AND user_id = ?',
-      [id, userId]
+      'SELECT * FROM parts_orders WHERE id = ?',
+      [id]
     );
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    await dbRun('DELETE FROM parts_orders WHERE id = ? AND user_id = ?', [id, userId]);
+    await dbRun('DELETE FROM parts_orders WHERE id = ?', [id]);
 
     logger.info('Parts order deleted', { userId, orderId: id });
 

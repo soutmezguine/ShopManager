@@ -240,6 +240,29 @@ body {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.parts-subtabs {
+  display: flex;
+  gap: 8px;
+}
+
+.parts-tab {
+  background: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.parts-tab.active {
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
 }
 
 .parts-toolbar-meta {

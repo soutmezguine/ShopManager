@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (module === 'appointments') {
           loadAppointments();
         } else if (module === 'parts') {
-          loadPartsOrders();
+          loadCurrentPartsView();
         }
       }
     });
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeModule.id === 'appointments-module') {
           openAppointmentModal();
         } else if (activeModule.id === 'parts-module') {
-          openPartsModal();
+          openCurrentPartsModal();
         }
       }
     }

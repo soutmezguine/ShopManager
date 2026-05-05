@@ -38,6 +38,7 @@ async function startServer() {
     app.use('/auth', require('./routes/auth'));
     app.use('/appointments', require('./routes/appointments'));
     app.use('/parts', require('./routes/parts'));
+    app.use('/returns', require('./routes/returns'));
     app.use('/todo', require('./routes/todo'));
 
     // Main dashboard

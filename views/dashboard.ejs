@@ -53,6 +53,10 @@
 
         <div class="parts-container">
           <div class="parts-toolbar">
+            <div class="parts-subtabs">
+              <button type="button" class="parts-tab active" data-part-view="orders">Orders</button>
+              <button type="button" class="parts-tab" data-part-view="returns">Returns</button>
+            </div>
             <input type="text" id="parts-search" class="search-input" placeholder="Search by RO, Parts, Vendor, Check #, or User">
             <button id="btn-add-part" class="btn btn-primary">+ Add Order</button>
           </div>
@@ -61,7 +65,7 @@
           </div>
           <div class="parts-list-container">
             <div id="parts-list" class="parts-list">
-              <!-- Parts orders will be loaded here -->
+              <!-- Parts orders and returns will be loaded here -->
             </div>
           </div>
         </div>
@@ -206,6 +210,47 @@
         <div class="form-actions">
           <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
           <button type="button" id="btn-delete-part" class="btn btn-danger hidden">Delete</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Returns Modal -->
+  <div id="returns-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add Return</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="returns-form" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="return-date">Return Date *</label>
+            <input type="date" id="return-date" required>
+          </div>
+          <div class="form-group">
+            <label for="return-vendor">Vendor *</label>
+            <input type="text" id="return-vendor" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="return-parts">Parts Returned *</label>
+          <textarea id="return-parts" required rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="return-status">Return Status</label>
+          <select id="return-status">
+            <option value="Pending">Pending</option>
+            <option value="Picked Up">Picked Up</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="button" id="btn-delete-return" class="btn btn-danger hidden">Delete</button>
           <button type="submit" class="btn btn-primary">Save</button>
         </div>
       </form>

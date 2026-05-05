@@ -125,7 +125,8 @@ async function toggleTodo(todoId) {
 }
 
 async function editTodo(todo) {
-  const newText = prompt('Edit task:', todo.task_text);
+  const creator = todo.created_by_name || todo.created_by_username || 'Unknown';
+  const newText = prompt(`Edit task (set by ${creator}):`, todo.task_text);
   if (newText === null) return;
 
   if (newText.trim() === '') {
