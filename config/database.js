@@ -86,6 +86,8 @@ function initializeDatabase() {
                 arrival_date DATE,
                 cost DECIMAL(10, 2),
                 check_number TEXT,
+                rep_name TEXT,
+                status TEXT DEFAULT 'Pending',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)

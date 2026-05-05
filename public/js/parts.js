@@ -34,7 +34,9 @@ partsForm?.addEventListener('submit', async (e) => {
     vendor: document.getElementById('part-vendor').value,
     arrivalDate: document.getElementById('part-arrival').value || null,
     cost: document.getElementById('part-cost').value || null,
-    checkNumber: document.getElementById('part-check').value || null
+    checkNumber: document.getElementById('part-check').value || null,
+    repName: document.getElementById('part-rep-name').value || null,
+    status: document.getElementById('part-status').value || 'Pending'
   };
 
   try {
@@ -96,11 +98,31 @@ async function loadPartsOrders() {
     
     allPartsOrders = await response.json();
     filterPartsOrders();
+    updateRefreshTimestamp();
   } catch (error) {
     console.error('Error loading parts orders:', error);
     partsList.innerHTML = '<p style="text-align: center; color: #666;">Error loading orders</p>';
   }
 }
+
+function updateRefreshTimestamp() {
+  const timestampEl = document.getElementById('parts-refresh-timestamp');
+  if (!timestampEl) return;
+  const now = new Date();
+  timestampEl.textContent = `Last refreshed: ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+// Auto-refresh parts orders every 5 minutes (300,000 ms)
+setInterval(() => {
+  loadPartsOrders();
+}, 300000);
+
+// Refresh parts orders when the tab becomes visible again
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    loadPartsOrders();
+  }
+});
 
 function filterPartsOrders() {
   const searchTerm = partsSearch?.value.toLowerCase() || '';
@@ -110,7 +132,8 @@ function filterPartsOrders() {
       order.ro,
       order.parts_ordered,
       order.vendor,
-      order.check_number
+      order.check_number,
+      order.rep_name
     ].join(' ').toLowerCase();
     
     return searchFields.includes(searchTerm);
@@ -131,19 +154,41 @@ function renderPartsOrders(orders) {
     const item = document.createElement('div');
     item.className = 'parts-row';
     
+    // Set background color based on status
+    let statusColor = '#f0f0f0';
+    switch(order.status) {
+      case 'Pending':
+        statusColor = '#FFFF99';
+        break;
+      case 'Arrived':
+        statusColor = '#99FF99';
+        break;
+      case 'Delayed':
+        statusColor = '#FFCC99';
+        break;
+      case 'Cancelled':
+        statusColor = '#FF9999';
+        break;
+    }
+    item.style.backgroundColor = statusColor;
+    
     const costDisplay = order.cost ? `$${parseFloat(order.cost).toFixed(2)}` : 'N/A';
     const arrivalDisplay = order.arrival_date ? new Date(order.arrival_date).toLocaleDateString() : 'Pending';
+    const orderedByDisplay = order.ordered_by_name || order.ordered_by_username || 'Unknown';
     
     item.innerHTML = `
       <div class="parts-row-header">
         <div><strong>RO: ${order.ro}</strong></div>
         <div><strong>Vendor: ${order.vendor}</strong></div>
         <div><strong>Order Date: ${new Date(order.order_date).toLocaleDateString()}</strong></div>
+        <div><strong>Status: ${order.status || 'Pending'}</strong></div>
       </div>
       <div class="parts-row-data">
         <div>Parts: ${order.parts_ordered.substring(0, 50)}${order.parts_ordered.length > 50 ? '...' : ''}</div>
         <div>Arrival: ${arrivalDisplay}</div>
         <div>Cost: ${costDisplay} ${order.check_number ? `| Check: ${order.check_number}` : ''}</div>
+        <div>Ordered by: <strong>${orderedByDisplay}</strong></div>
+        ${order.rep_name ? `<div>Rep: ${order.rep_name}</div>` : ''}
       </div>
     `;
 
@@ -166,6 +211,8 @@ async function editPart(order) {
   document.getElementById('part-arrival').value = order.arrival_date || '';
   document.getElementById('part-cost').value = order.cost || '';
   document.getElementById('part-check').value = order.check_number || '';
+  document.getElementById('part-rep-name').value = order.rep_name || '';
+  document.getElementById('part-status').value = order.status || 'Pending';
 
   document.querySelector('#parts-modal .modal-header h3').textContent = 'Edit Parts Order';
   btnDeletePart.classList.remove('hidden');
@@ -177,5 +224,6 @@ function resetPartsForm() {
   partsForm.reset();
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('part-order-date').value = today;
+  document.getElementById('part-status').value = 'Pending';
   currentEditingPartId = null;
 }

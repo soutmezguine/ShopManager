@@ -53,8 +53,11 @@
 
         <div class="parts-container">
           <div class="parts-toolbar">
-            <input type="text" id="parts-search" class="search-input" placeholder="Search by RO, Parts, Vendor, or Check #">
+            <input type="text" id="parts-search" class="search-input" placeholder="Search by RO, Parts, Vendor, Check #, or User">
             <button id="btn-add-part" class="btn btn-primary">+ Add Order</button>
+          </div>
+          <div class="parts-toolbar-meta">
+            <span id="parts-refresh-timestamp" class="refresh-timestamp">Last refreshed: never</span>
           </div>
           <div class="parts-list-container">
             <div id="parts-list" class="parts-list">
@@ -181,6 +184,22 @@
           <div class="form-group">
             <label for="part-check">Check #</label>
             <input type="text" id="part-check">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="part-rep-name">Rep Name</label>
+            <input type="text" id="part-rep-name">
+          </div>
+          <div class="form-group">
+            <label for="part-status">Order Status</label>
+            <select id="part-status">
+              <option value="Pending">Pending</option>
+              <option value="Arrived">Arrived</option>
+              <option value="Delayed">Delayed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
           </div>
         </div>
 
