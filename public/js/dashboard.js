@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (module === 'parts') {
           loadCurrentPartsView();
         }
+
+        // Always refresh shared todo list when the user switches modules.
+        loadTodos();
       }
     });
   });
@@ -42,6 +45,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize with appointments module
   loadAppointments();
   loadTodos();
+
+  // Refresh the shared todo list when the app becomes visible again
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      loadTodos();
+    }
+  });
+
+  // Auto-refresh todo list every 5 minutes
+  setInterval(() => {
+    loadTodos();
+  }, 300000);
 
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
