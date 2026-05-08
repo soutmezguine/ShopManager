@@ -14,6 +14,7 @@
       <div class="nav-menu">
         <a href="/" class="nav-link active" data-module="appointments">📅 Appointments</a>
         <a href="/" class="nav-link" data-module="parts">📦 Parts Log</a>
+        <a href="/" class="nav-link" data-module="vendors">🏢 Vendors</a>
         <a href="/auth/logout" class="nav-link nav-logout">Logout</a>
       </div>
       <div class="nav-user">Welcome, <%= userName %></div>
@@ -66,6 +67,24 @@
           <div class="parts-list-container">
             <div id="parts-list" class="parts-list">
               <!-- Parts orders and returns will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="vendors-module" class="module">
+        <div class="module-header">
+          <h2>Vendors</h2>
+        </div>
+
+        <div class="vendor-container">
+          <div class="vendor-toolbar">
+            <input type="text" id="vendor-search" class="search-input" placeholder="Search vendors by name, address, phone, email, or account #">
+            <button id="btn-add-vendor" class="btn btn-primary">+ Add Vendor</button>
+          </div>
+          <div class="vendor-list-container">
+            <div id="vendor-list" class="vendor-list">
+              <!-- Vendor cards will be loaded here -->
             </div>
           </div>
         </div>
@@ -257,10 +276,61 @@
     </div>
   </div>
 
+  <!-- Vendors Modal -->
+  <div id="vendor-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add Vendor</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="vendor-form" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vendor-picture">Picture</label>
+            <input type="file" id="vendor-picture" accept="image/*">
+            <input type="hidden" id="vendor-picture-data">
+            <img id="vendor-picture-preview" class="vendor-picture-preview hidden" alt="Vendor preview">
+          </div>
+          <div class="form-group">
+            <label for="vendor-name">Name *</label>
+            <input type="text" id="vendor-name" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="vendor-address">Address *</label>
+          <input type="text" id="vendor-address" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vendor-phone">Phone Number</label>
+            <input type="tel" id="vendor-phone">
+          </div>
+          <div class="form-group">
+            <label for="vendor-email">Email</label>
+            <input type="email" id="vendor-email">
+          </div>
+          <div class="form-group">
+            <label for="vendor-account">Account #</label>
+            <input type="text" id="vendor-account">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="button" id="btn-delete-vendor" class="btn btn-danger hidden">Delete</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="/js/appointments.js"></script>
   <script src="/js/parts.js"></script>
   <script src="/js/todo.js"></script>
+  <script src="/js/vendors.js"></script>
   <script src="/js/dashboard.js"></script>
 </body>
 </html>

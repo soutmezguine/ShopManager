@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
           loadAppointments();
         } else if (module === 'parts') {
           loadCurrentPartsView();
+        } else if (module === 'vendors') {
+          loadVendors();
         }
 
         // Always refresh shared todo list when the user switches modules.
@@ -68,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
           openAppointmentModal();
         } else if (activeModule.id === 'parts-module') {
           openCurrentPartsModal();
+        } else if (activeModule.id === 'vendors-module') {
+          openVendorModal();
         }
       }
     }

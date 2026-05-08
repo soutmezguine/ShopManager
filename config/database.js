@@ -119,51 +119,74 @@ function initializeDatabase() {
                   return;
                 }
 
-                // Todo list table
+                // Vendors table
                 db.run(`
-                CREATE TABLE IF NOT EXISTS todos (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  user_id INTEGER NOT NULL,
-                  task_text TEXT NOT NULL,
-                  completed BOOLEAN DEFAULT 0,
-                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                  FOREIGN KEY (user_id) REFERENCES users(id)
-                )
-              `, (err) => {
-                if (err) {
-                  errorLogger.error({ message: 'Error creating todos table', error: err.message });
-                  reject(err);
-                  return;
-                }
-
-                // Error logs table
-                db.run(`
-                  CREATE TABLE IF NOT EXISTS error_logs (
+                  CREATE TABLE IF NOT EXISTS vendors (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    level TEXT,
-                    message TEXT,
-                    stack TEXT,
-                    user_id INTEGER,
-                    additional_info TEXT,
-                    logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    user_id INTEGER NOT NULL,
+                    picture TEXT,
+                    name TEXT NOT NULL,
+                    address TEXT NOT NULL,
+                    phone_number TEXT,
+                    email TEXT,
+                    account_number TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
                   )
                 `, (err) => {
                   if (err) {
-                    errorLogger.error({ message: 'Error creating error_logs table', error: err.message });
+                    errorLogger.error({ message: 'Error creating vendors table', error: err.message });
                     reject(err);
                     return;
                   }
 
-                  logger.info('Database tables initialized successfully');
-                  resolve();
+                  // Todo list table
+                  db.run(`
+                    CREATE TABLE IF NOT EXISTS todos (
+                      id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      user_id INTEGER NOT NULL,
+                      task_text TEXT NOT NULL,
+                      completed BOOLEAN DEFAULT 0,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      FOREIGN KEY (user_id) REFERENCES users(id)
+                    )
+                  `, (err) => {
+                    if (err) {
+                      errorLogger.error({ message: 'Error creating todos table', error: err.message });
+                      reject(err);
+                      return;
+                    }
+
+                    // Error logs table
+                    db.run(`
+                      CREATE TABLE IF NOT EXISTS error_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        level TEXT,
+                        message TEXT,
+                        stack TEXT,
+                        user_id INTEGER,
+                        additional_info TEXT,
+                        logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                      )
+                    `, (err) => {
+                      if (err) {
+                        errorLogger.error({ message: 'Error creating error_logs table', error: err.message });
+                        reject(err);
+                        return;
+                      }
+
+                      logger.info('Database tables initialized successfully');
+                      resolve();
+                    });
+                  });
                 });
               });
             });
           });
         });
       });
-    });
     } catch (error) {
       errorLogger.error({ message: 'Database initialization failed', error: error.message });
       reject(error);
