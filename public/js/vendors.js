@@ -134,6 +134,9 @@ function filterVendors() {
     return searchFields.includes(searchTerm);
   });
 
+  // Sort alphabetically by name
+  filtered.sort((a, b) => a.name.localeCompare(b.name));
+
   renderVendors(filtered);
 }
 
@@ -155,15 +158,14 @@ function renderVendors(vendors) {
       `<div class="vendor-card-avatar vendor-card-avatar-empty">No image</div>`;
 
     card.innerHTML = `
+      ${pictureHtml}
       <div class="vendor-card-body">
         <div class="vendor-card-row"><strong>${vendor.name}</strong></div>
         <div class="vendor-card-row">${vendor.address}</div>
-        <div class="vendor-card-row">${vendor.phone_number || 'No phone provided'}</div>
-        <div class="vendor-card-row">${vendor.email || 'No email provided'}</div>
-        <div class="vendor-card-row">Account #: ${vendor.account_number || 'N/A'}</div>
+        <div class="vendor-card-row">${vendor.phone_number || 'No phone'}</div>
+        <div class="vendor-card-row">${vendor.email || 'No email'}</div>
         <div class="vendor-card-row vendor-card-meta">Added by: ${vendor.created_by_name || vendor.created_by_username || 'Unknown'}</div>
       </div>
-      ${pictureHtml}
     `;
 
     card.addEventListener('dblclick', () => {
