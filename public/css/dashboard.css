@@ -339,7 +339,7 @@ body {
   gap: 8px;
   cursor: pointer;
   transition: transform var(--transition), box-shadow var(--transition);
-  height: 96px;
+  height: 115px;
 }
 
 .vendor-card:hover {

@@ -126,7 +126,11 @@ function initializeDatabase() {
                     user_id INTEGER NOT NULL,
                     picture TEXT,
                     name TEXT NOT NULL,
-                    address TEXT NOT NULL,
+                    street TEXT,
+                    city TEXT,
+                    state TEXT,
+                    zipcode TEXT,
+                    address TEXT,
                     phone_number TEXT,
                     email TEXT,
                     account_number TEXT,
@@ -141,46 +145,83 @@ function initializeDatabase() {
                     return;
                   }
 
-                  // Todo list table
-                  db.run(`
-                    CREATE TABLE IF NOT EXISTS todos (
-                      id INTEGER PRIMARY KEY AUTOINCREMENT,
-                      user_id INTEGER NOT NULL,
-                      task_text TEXT NOT NULL,
-                      completed BOOLEAN DEFAULT 0,
-                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                      FOREIGN KEY (user_id) REFERENCES users(id)
-                    )
-                  `, (err) => {
-                    if (err) {
-                      errorLogger.error({ message: 'Error creating todos table', error: err.message });
-                      reject(err);
-                      return;
-                    }
+                  // Add new columns to existing vendors table if they don't exist
+                  const addColumnsIfNotExist = () => {
+                    db.all(`PRAGMA table_info(vendors)`, (err, rows) => {
+                      if (err) {
+                        logger.info('Could not check vendors table columns');
+                        continueWithTodos();
+                        return;
+                      }
+                      const columnNames = rows.map(row => row.name);
+                      if (!columnNames.includes('street')) {
+                        db.run(`ALTER TABLE vendors ADD COLUMN street TEXT`, (err) => {
+                          if (err) logger.info('Column street already exists or error adding it');
+                        });
+                      }
+                      if (!columnNames.includes('city')) {
+                        db.run(`ALTER TABLE vendors ADD COLUMN city TEXT`, (err) => {
+                          if (err) logger.info('Column city already exists or error adding it');
+                        });
+                      }
+                      if (!columnNames.includes('state')) {
+                        db.run(`ALTER TABLE vendors ADD COLUMN state TEXT`, (err) => {
+                          if (err) logger.info('Column state already exists or error adding it');
+                        });
+                      }
+                      if (!columnNames.includes('zipcode')) {
+                        db.run(`ALTER TABLE vendors ADD COLUMN zipcode TEXT`, (err) => {
+                          if (err) logger.info('Column zipcode already exists or error adding it');
+                        });
+                      }
+                      continueWithTodos();
+                    });
+                  };
 
-                    // Error logs table
+                  const continueWithTodos = () => {
+                    // Todo list table
                     db.run(`
-                      CREATE TABLE IF NOT EXISTS error_logs (
+                      CREATE TABLE IF NOT EXISTS todos (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        level TEXT,
-                        message TEXT,
-                        stack TEXT,
-                        user_id INTEGER,
-                        additional_info TEXT,
-                        logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                        user_id INTEGER NOT NULL,
+                        task_text TEXT NOT NULL,
+                        completed BOOLEAN DEFAULT 0,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(id)
                       )
                     `, (err) => {
                       if (err) {
-                        errorLogger.error({ message: 'Error creating error_logs table', error: err.message });
+                        errorLogger.error({ message: 'Error creating todos table', error: err.message });
                         reject(err);
                         return;
                       }
 
-                      logger.info('Database tables initialized successfully');
-                      resolve();
+                      // Error logs table
+                      db.run(`
+                        CREATE TABLE IF NOT EXISTS error_logs (
+                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          level TEXT,
+                          message TEXT,
+                          stack TEXT,
+                          user_id INTEGER,
+                          additional_info TEXT,
+                          logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )
+                      `, (err) => {
+                        if (err) {
+                          errorLogger.error({ message: 'Error creating error_logs table', error: err.message });
+                          reject(err);
+                          return;
+                        }
+
+                        logger.info('Database tables initialized successfully');
+                        resolve();
+                      });
                     });
-                  });
+                  };
+
+                  addColumnsIfNotExist();
                 });
               });
             });

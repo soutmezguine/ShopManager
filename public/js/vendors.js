@@ -46,7 +46,10 @@ vendorForm?.addEventListener('submit', async (e) => {
   const payload = {
     picture: vendorPictureData.value || null,
     name: document.getElementById('vendor-name').value,
-    address: document.getElementById('vendor-address').value,
+    street: document.getElementById('vendor-street').value,
+    city: document.getElementById('vendor-city').value,
+    state: document.getElementById('vendor-state').value,
+    zipcode: document.getElementById('vendor-zipcode').value,
     phone_number: document.getElementById('vendor-phone').value || null,
     email: document.getElementById('vendor-email').value || null,
     account_number: document.getElementById('vendor-account').value || null
@@ -161,10 +164,10 @@ function renderVendors(vendors) {
       ${pictureHtml}
       <div class="vendor-card-body">
         <div class="vendor-card-row"><strong>${vendor.name}</strong></div>
-        <div class="vendor-card-row">${vendor.address}</div>
-        <div class="vendor-card-row">${vendor.phone_number || 'No phone'}</div>
-        <div class="vendor-card-row">${vendor.email || 'No email'}</div>
-        <div class="vendor-card-row vendor-card-meta">Added by: ${vendor.created_by_name || vendor.created_by_username || 'Unknown'}</div>
+        <div class="vendor-card-row">${vendor.street}</div>
+        <div class="vendor-card-row">${vendor.city}, ${vendor.state} ${vendor.zipcode}</div>
+        <div class="vendor-card-row">${vendor.phone_number || ''}</div>
+        <div class="vendor-card-row">${vendor.email || ''}</div>
       </div>
     `;
 
@@ -179,7 +182,10 @@ function renderVendors(vendors) {
 function editVendor(vendor) {
   currentEditingVendorId = vendor.id;
   document.getElementById('vendor-name').value = vendor.name || '';
-  document.getElementById('vendor-address').value = vendor.address || '';
+  document.getElementById('vendor-street').value = vendor.street || '';
+  document.getElementById('vendor-city').value = vendor.city || '';
+  document.getElementById('vendor-state').value = vendor.state || '';
+  document.getElementById('vendor-zipcode').value = vendor.zipcode || '';
   document.getElementById('vendor-phone').value = vendor.phone_number || '';
   document.getElementById('vendor-email').value = vendor.email || '';
   document.getElementById('vendor-account').value = vendor.account_number || '';

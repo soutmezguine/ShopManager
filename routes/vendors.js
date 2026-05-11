@@ -17,26 +17,36 @@ router.get('/api', requireLogin, async (req, res) => {
   try {
     let query = `
       SELECT
-        v.*,
-        u.full_name as created_by_name,
-        u.username as created_by_username
+        v.id,
+        v.user_id,
+        v.picture,
+        v.name,
+        v.street,
+        v.city,
+        v.state,
+        v.zipcode,
+        v.phone_number,
+        v.email,
+        v.account_number,
+        v.created_at,
+        v.updated_at
       FROM vendors v
-      LEFT JOIN users u ON v.user_id = u.id
     `;
     const params = [];
 
     if (search) {
       query += ` WHERE (
         v.name LIKE ? OR
-        v.address LIKE ? OR
+        v.street LIKE ? OR
+        v.city LIKE ? OR
+        v.state LIKE ? OR
+        v.zipcode LIKE ? OR
         v.phone_number LIKE ? OR
         v.email LIKE ? OR
-        v.account_number LIKE ? OR
-        u.full_name LIKE ? OR
-        u.username LIKE ?
+        v.account_number LIKE ?
       )`;
       const term = `%${search}%`;
-      params.push(term, term, term, term, term, term, term);
+      params.push(term, term, term, term, term, term, term, term);
     }
 
     query += ` ORDER BY v.name COLLATE NOCASE ASC`;
@@ -60,13 +70,7 @@ router.get('/api/:id', requireLogin, async (req, res) => {
 
   try {
     const vendor = await dbGet(
-      `SELECT
-         v.*,
-         u.full_name as created_by_name,
-         u.username as created_by_username
-       FROM vendors v
-       LEFT JOIN users u ON v.user_id = u.id
-       WHERE v.id = ?`,
+      `SELECT * FROM vendors WHERE id = ?`,
       [id]
     );
 
@@ -87,19 +91,19 @@ router.get('/api/:id', requireLogin, async (req, res) => {
 
 // Create vendor
 router.post('/api', requireLogin, async (req, res) => {
-  const { picture, name, address, phone_number, email, account_number } = req.body;
+  const { picture, name, street, city, state, zipcode, phone_number, email, account_number } = req.body;
   const userId = req.session.userId;
 
   try {
-    if (!name || !address) {
-      return res.status(400).json({ error: 'Name and address are required' });
+    if (!name || !street || !city || !state || !zipcode) {
+      return res.status(400).json({ error: 'Name, street, city, state, and zipcode are required' });
     }
 
     const result = await dbRun(
       `INSERT INTO vendors
-        (user_id, picture, name, address, phone_number, email, account_number)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [userId, picture || null, name, address, phone_number || null, email || null, account_number || null]
+        (user_id, picture, name, street, city, state, zipcode, phone_number, email, account_number)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, picture || null, name, street, city, state, zipcode, phone_number || null, email || null, account_number || null]
     );
 
     logger.info('Vendor created', {
@@ -123,7 +127,7 @@ router.post('/api', requireLogin, async (req, res) => {
 // Update vendor
 router.put('/api/:id', requireLogin, async (req, res) => {
   const { id } = req.params;
-  const { picture, name, address, phone_number, email, account_number } = req.body;
+  const { picture, name, street, city, state, zipcode, phone_number, email, account_number } = req.body;
 
   try {
     const vendor = await dbGet('SELECT * FROM vendors WHERE id = ?', [id]);
@@ -135,13 +139,16 @@ router.put('/api/:id', requireLogin, async (req, res) => {
       `UPDATE vendors
        SET picture = ?,
            name = ?,
-           address = ?,
+           street = ?,
+           city = ?,
+           state = ?,
+           zipcode = ?,
            phone_number = ?,
            email = ?,
            account_number = ?,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [picture || null, name, address, phone_number || null, email || null, account_number || null, id]
+      [picture || null, name, street, city, state, zipcode, phone_number || null, email || null, account_number || null, id]
     );
 
     logger.info('Vendor updated', { vendorId: id });
