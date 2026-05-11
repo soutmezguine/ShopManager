@@ -99,11 +99,14 @@ router.post('/api', requireLogin, async (req, res) => {
       return res.status(400).json({ error: 'Name, street, city, state, and zipcode are required' });
     }
 
+    // Build full address from components
+    const address = `${street}, ${city}, ${state} ${zipcode}`;
+
     const result = await dbRun(
       `INSERT INTO vendors
-        (user_id, picture, name, street, city, state, zipcode, phone_number, email, account_number)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, picture || null, name, street, city, state, zipcode, phone_number || null, email || null, account_number || null]
+        (user_id, picture, name, street, city, state, zipcode, address, phone_number, email, account_number)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, picture || null, name, street, city, state, zipcode, address, phone_number || null, email || null, account_number || null]
     );
 
     logger.info('Vendor created', {
@@ -135,6 +138,9 @@ router.put('/api/:id', requireLogin, async (req, res) => {
       return res.status(404).json({ error: 'Vendor not found' });
     }
 
+    // Build full address from components
+    const address = `${street}, ${city}, ${state} ${zipcode}`;
+
     await dbRun(
       `UPDATE vendors
        SET picture = ?,
@@ -143,12 +149,13 @@ router.put('/api/:id', requireLogin, async (req, res) => {
            city = ?,
            state = ?,
            zipcode = ?,
+           address = ?,
            phone_number = ?,
            email = ?,
            account_number = ?,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [picture || null, name, street, city, state, zipcode, phone_number || null, email || null, account_number || null, id]
+      [picture || null, name, street, city, state, zipcode, address, phone_number || null, email || null, account_number || null, id]
     );
 
     logger.info('Vendor updated', { vendorId: id });
