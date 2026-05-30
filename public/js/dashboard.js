@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
           loadCurrentPartsView();
         } else if (module === 'vendors') {
           loadVendors();
+        } else if (module === 'leads') {
+          loadLeads();
         }
 
         // Always refresh shared todo list when the user switches modules.
@@ -47,6 +49,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize with appointments module
   loadAppointments();
   loadTodos();
+
+  const dropdownToggle = document.getElementById('user-dropdown-toggle');
+  const dropdownMenu = document.getElementById('user-dropdown-menu');
+
+  dropdownToggle?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownMenu?.classList.toggle('hidden');
+  });
+
+  dropdownMenu?.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', () => {
+    if (!dropdownMenu?.classList.contains('hidden')) {
+      dropdownMenu?.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('dropdown-admin')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openAdminModal();
+    dropdownMenu?.classList.add('hidden');
+  });
 
   // Refresh the shared todo list when the app becomes visible again
   document.addEventListener('visibilitychange', () => {

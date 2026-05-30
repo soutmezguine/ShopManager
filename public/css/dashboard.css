@@ -75,19 +75,58 @@ body {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-.nav-logout {
-  margin-left: auto;
-  color: #ffcdd2;
-}
-
-.nav-logout:hover {
-  color: #ffb74d;
-}
-
 .nav-user {
-  padding: 15px 20px;
+  position: relative;
+}
+
+.nav-user-btn {
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
   font-size: 14px;
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 15px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-user-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-caret {
+  font-size: 12px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  min-width: 180px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 4px;
+  z-index: 1001;
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 12px 16px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color var(--transition);
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
 }
 
 /* Main Layout */
@@ -339,7 +378,7 @@ body {
   gap: 8px;
   cursor: pointer;
   transition: transform var(--transition), box-shadow var(--transition);
-  height: 115px;
+  min-height: 130px;
 }
 
 .vendor-card:hover {
@@ -351,8 +390,8 @@ body {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 4px;
   overflow: hidden;
   background: var(--background);
@@ -370,7 +409,7 @@ body {
 
 .vendor-card-avatar-empty {
   color: var(--text-secondary);
-  font-size: 8px;
+  font-size: 9px;
   text-align: center;
   padding: 2px;
 }
@@ -380,13 +419,14 @@ body {
   flex-direction: column;
   gap: 2px;
   flex: 1;
-  padding-right: 40px; /* Make room for avatar */
+  padding-right: 48px; /* Make room for avatar */
+  font-size: 12px;
 }
 
 .vendor-card-row {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-color);
-  line-height: 1.1;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -405,6 +445,116 @@ body {
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid var(--border-color);
+}
+
+.leads-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lead-card {
+  background: var(--background);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lead-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.lead-contacted-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.lead-card-row {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.lead-card-message {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+
+.admin-section {
+  padding: 16px 0;
+}
+
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.admin-user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-user-card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--background);
+}
+
+.admin-user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-user-created {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.admin-permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-permissions-grid label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.admin-user-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-action-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .parts-row {

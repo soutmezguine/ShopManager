@@ -40,6 +40,12 @@ function initializeDatabase() {
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             full_name TEXT NOT NULL,
+            is_admin INTEGER DEFAULT 0,
+            can_access_admin INTEGER DEFAULT 0,
+            can_appointments INTEGER DEFAULT 1,
+            can_parts INTEGER DEFAULT 1,
+            can_vendors INTEGER DEFAULT 1,
+            can_leads INTEGER DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             last_login DATETIME
           )
@@ -145,36 +151,105 @@ function initializeDatabase() {
                     return;
                   }
 
-                  // Add new columns to existing vendors table if they don't exist
+                  // Add new columns to existing vendors and users tables if they don't exist
                   const addColumnsIfNotExist = () => {
-                    db.all(`PRAGMA table_info(vendors)`, (err, rows) => {
+                    db.all(`PRAGMA table_info(vendors)`, (err, vendorRows) => {
                       if (err) {
                         logger.info('Could not check vendors table columns');
-                        continueWithTodos();
+                      } else {
+                        const columnNames = vendorRows.map(row => row.name);
+                        if (!columnNames.includes('street')) {
+                          db.run(`ALTER TABLE vendors ADD COLUMN street TEXT`, (err) => {
+                            if (err) logger.info('Column street already exists or error adding it');
+                          });
+                        }
+                        if (!columnNames.includes('city')) {
+                          db.run(`ALTER TABLE vendors ADD COLUMN city TEXT`, (err) => {
+                            if (err) logger.info('Column city already exists or error adding it');
+                          });
+                        }
+                        if (!columnNames.includes('state')) {
+                          db.run(`ALTER TABLE vendors ADD COLUMN state TEXT`, (err) => {
+                            if (err) logger.info('Column state already exists or error adding it');
+                          });
+                        }
+                        if (!columnNames.includes('zipcode')) {
+                          db.run(`ALTER TABLE vendors ADD COLUMN zipcode TEXT`, (err) => {
+                            if (err) logger.info('Column zipcode already exists or error adding it');
+                          });
+                        }
+                      }
+
+                      db.all(`PRAGMA table_info(users)`, (err, userRows) => {
+                        if (err) {
+                          logger.info('Could not check users table columns');
+                        } else {
+                          const userColumnNames = userRows.map(row => row.name);
+                          const userAlterations = [
+                            { name: 'is_admin', type: 'INTEGER DEFAULT 0' },
+                            { name: 'can_access_admin', type: 'INTEGER DEFAULT 0' },
+                            { name: 'can_appointments', type: 'INTEGER DEFAULT 1' },
+                            { name: 'can_parts', type: 'INTEGER DEFAULT 1' },
+                            { name: 'can_vendors', type: 'INTEGER DEFAULT 1' },
+                            { name: 'can_leads', type: 'INTEGER DEFAULT 1' }
+                          ];
+
+                          userAlterations.forEach(column => {
+                            if (!userColumnNames.includes(column.name)) {
+                              db.run(`ALTER TABLE users ADD COLUMN ${column.name} ${column.type}`, (err) => {
+                                if (err) logger.info(`Column ${column.name} already exists or error adding it`);
+                              });
+                            }
+                          });
+                        }
+
+                        createLeadsAndSettings();
+                      });
+                    });
+                  };
+
+                  const createLeadsAndSettings = () => {
+                    db.run(`
+                      CREATE TABLE IF NOT EXISTS leads (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        customer_name TEXT NOT NULL,
+                        phone_number TEXT,
+                        email TEXT NOT NULL,
+                        message TEXT NOT NULL,
+                        contacted INTEGER DEFAULT 0,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(id)
+                      )
+                    `, (err) => {
+                      if (err) {
+                        errorLogger.error({ message: 'Error creating leads table', error: err.message });
+                        reject(err);
                         return;
                       }
-                      const columnNames = rows.map(row => row.name);
-                      if (!columnNames.includes('street')) {
-                        db.run(`ALTER TABLE vendors ADD COLUMN street TEXT`, (err) => {
-                          if (err) logger.info('Column street already exists or error adding it');
+
+                      db.run(`
+                        CREATE TABLE IF NOT EXISTS settings (
+                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          name TEXT UNIQUE NOT NULL,
+                          value TEXT NOT NULL,
+                          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )
+                      `, (err) => {
+                        if (err) {
+                          errorLogger.error({ message: 'Error creating settings table', error: err.message });
+                          reject(err);
+                          return;
+                        }
+
+                        db.run(`INSERT OR IGNORE INTO settings (name, value) VALUES (?, ?)`, ['allow_registration', '1'], (err) => {
+                          if (err) {
+                            logger.info('Unable to insert allow_registration default');
+                          }
+                          continueWithTodos();
                         });
-                      }
-                      if (!columnNames.includes('city')) {
-                        db.run(`ALTER TABLE vendors ADD COLUMN city TEXT`, (err) => {
-                          if (err) logger.info('Column city already exists or error adding it');
-                        });
-                      }
-                      if (!columnNames.includes('state')) {
-                        db.run(`ALTER TABLE vendors ADD COLUMN state TEXT`, (err) => {
-                          if (err) logger.info('Column state already exists or error adding it');
-                        });
-                      }
-                      if (!columnNames.includes('zipcode')) {
-                        db.run(`ALTER TABLE vendors ADD COLUMN zipcode TEXT`, (err) => {
-                          if (err) logger.info('Column zipcode already exists or error adding it');
-                        });
-                      }
-                      continueWithTodos();
+                      });
                     });
                   };
 

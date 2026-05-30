@@ -3,6 +3,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { initializeDatabase } = require('./config/database');
+const { dbGet } = require('./utils/db-helpers');
 const { errorLogger, logger } = require('./utils/logger');
 
 const app = express();
@@ -41,16 +42,34 @@ async function startServer() {
     app.use('/returns', require('./routes/returns'));
     app.use('/vendors', require('./routes/vendors'));
     app.use('/todo', require('./routes/todo'));
+    app.use('/', require('./routes/leads'));
 
     // Main dashboard
-    app.get('/', (req, res) => {
+    app.get('/', async (req, res, next) => {
       if (!req.session.userId) {
         return res.redirect('/auth/login');
       }
-      res.render('dashboard', { 
-        userName: req.session.userName,
-        userId: req.session.userId 
-      });
+
+      try {
+        const user = await dbGet(
+          'SELECT is_admin, can_appointments, can_parts, can_vendors, can_leads FROM users WHERE id = ?',
+          [req.session.userId]
+        );
+
+        res.render('dashboard', {
+          userName: req.session.userName,
+          userId: req.session.userId,
+          isAdmin: !!user?.is_admin,
+          permissions: {
+            can_appointments: user?.can_appointments === 1,
+            can_parts: user?.can_parts === 1,
+            can_vendors: user?.can_vendors === 1,
+            can_leads: user?.can_leads === 1
+          }
+        });
+      } catch (error) {
+        next(error);
+      }
     });
 
     // 404 handler
