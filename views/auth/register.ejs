@@ -71,6 +71,11 @@
       <p class="auth-link">
         Already have an account? <a href="/auth/login">Login here</a>
       </p>
+      <% if (allowRegistration === false) { %>
+      <script>
+        document.querySelector('button[type="submit"]').disabled = true;
+      </script>
+      <% } %>
     </div>
   </div>
 </body>

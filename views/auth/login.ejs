@@ -46,7 +46,11 @@
       </form>
 
       <p class="auth-link">
-        Don't have an account? <a href="/auth/register">Register here</a>
+        <% if (typeof allowRegistration === 'undefined' || allowRegistration) { %>
+          Don't have an account? <a href="/auth/register">Register here</a>
+        <% } else { %>
+          New user registration is currently disabled.
+        <% } %>
       </p>
     </div>
   </div>
