@@ -74,7 +74,8 @@ A modular, multi-user web application for managing shop operations including app
 2. Click "Register here" to create a new account
 3. Enter your full name, desired username, and password
 4. Click "Register" to create your account
-5. Log in with your credentials
+5. The first registered user is automatically granted admin privileges and full admin access
+6. Log in with your credentials
 
 ### Appointment Book Module
 
@@ -125,6 +126,18 @@ A modular, multi-user web application for managing shop operations including app
    - Double-click an order
    - Click "Delete" button
    - Confirm deletion
+
+### Lead Contact Form
+
+1. **Public Contact Page**:
+   - Visit `/contact` to submit a new lead
+   - The contact form stores new leads in the `leads` table
+   - The form now requires a secure lead form token for submission
+
+2. **Admin Token Management**:
+   - Admin users can generate or refresh the lead form token from the admin settings panel
+   - Use the generated token on external websites to securely submit leads to `/leads/contact`
+   - A cut-and-paste PHP contact form example is available in `CONTACT_FORM_PHP.md`
 
 ### To-Do List
 
@@ -258,6 +271,8 @@ All application errors are logged in two ways:
 ## Security Notes
 
 - Passwords are hashed using bcryptjs before storage
+- The contact form endpoint requires a secure lead form token
+- Admins can manage the lead form token in the admin section and share it only with trusted external forms
 - Session management with secure cookies
 - Each user's data is isolated to their user account
 - All API routes check user authentication

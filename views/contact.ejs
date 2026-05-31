@@ -20,6 +20,9 @@
       <% } %>
 
       <form action="/leads/contact" method="POST" class="auth-form">
+        <% if (typeof formToken !== 'undefined' && formToken) { %>
+          <input type="hidden" name="token" value="<%= formToken %>" />
+        <% } %>
         <div class="form-group">
           <label for="name">Name</label>
           <input id="name" type="text" name="name" class="form-control" required autofocus />
