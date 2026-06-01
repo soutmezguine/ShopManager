@@ -3,6 +3,11 @@ const router = express.Router();
 const { dbRun, dbGet, dbAll } = require('../utils/db-helpers');
 const { logger, errorLogger } = require('../utils/logger');
 
+async function getSetting(name, defaultValue = null) {
+  const row = await dbGet('SELECT value FROM settings WHERE name = ?', [name]);
+  return row ? row.value : defaultValue;
+}
+
 const requireLogin = (req, res, next) => {
   if (!req.session.userId) {
     return res.redirect('/auth/login');
@@ -32,13 +37,30 @@ const requirePermission = (permissionField) => async (req, res, next) => {
 };
 
 // Public contact form page
-router.get('/contact', (req, res) => {
-  res.render('contact');
+router.get('/contact', async (req, res) => {
+  try {
+    const token = await getSetting('lead_form_token', null);
+    res.render('contact', { formToken: token });
+  } catch (error) {
+    errorLogger.error({
+      message: 'Error loading contact page',
+      stack: error.stack
+    });
+    res.render('contact', { message: 'Unable to load contact form at this time.' });
+  }
 });
 
 // Public contact form API endpoint
 router.post('/leads/contact', async (req, res) => {
-  const { name, phone_number, email, message } = req.body;
+  const { name, phone_number, email, message, token } = req.body;
+  const headerToken = req.headers['x-lead-form-token'];
+
+  const expectedToken = await getSetting('lead_form_token', null);
+  if (!expectedToken || (token !== expectedToken && headerToken !== expectedToken)) {
+    return res.status(403).render('contact', {
+      message: 'Invalid or missing contact form token. Please contact the site administrator.'
+    });
+  }
 
   if (!name || !email || !message) {
     return res.status(400).render('contact', {

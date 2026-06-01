@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const router = express.Router();
 const { dbRun, dbGet, dbAll } = require('../utils/db-helpers');
 const { logger, errorLogger } = require('../utils/logger');
@@ -7,6 +8,13 @@ const { logger, errorLogger } = require('../utils/logger');
 async function getSetting(name, defaultValue = '1') {
   const row = await dbGet('SELECT value FROM settings WHERE name = ?', [name]);
   return row ? row.value : defaultValue;
+}
+
+async function setSetting(name, value) {
+  await dbRun(
+    'INSERT OR REPLACE INTO settings (name, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)',
+    [name, value]
+  );
 }
 
 const requireLogin = (req, res, next) => {
@@ -78,11 +86,23 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    const userCountRow = await dbGet('SELECT COUNT(*) AS count FROM users');
+    const isFirstUser = !userCountRow || userCountRow.count === 0;
     const hashedPassword = await bcrypt.hash(password, 8);
 
     await dbRun(
-      'INSERT INTO users (username, password, full_name, can_access_admin, can_appointments, can_parts, can_vendors, can_leads) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [username, hashedPassword, fullName, 0, 1, 1, 1, 1]
+      'INSERT INTO users (username, password, full_name, is_admin, can_access_admin, can_appointments, can_parts, can_vendors, can_leads) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        username,
+        hashedPassword,
+        fullName,
+        isFirstUser ? 1 : 0,
+        isFirstUser ? 1 : 0,
+        1,
+        1,
+        1,
+        1
+      ]
     );
 
     logger.info('New user registered', { username, fullName });
@@ -166,7 +186,8 @@ router.get('/logout', (req, res) => {
 router.get('/admin/settings', requireLogin, requireAdmin, async (req, res) => {
   try {
     const allowRegistration = await getSetting('allow_registration', '1') === '1';
-    res.json({ allowRegistration });
+    const leadFormToken = await getSetting('lead_form_token', null);
+    res.json({ allowRegistration, leadFormToken });
   } catch (error) {
     errorLogger.error({
       message: 'Error loading admin settings',
@@ -180,10 +201,7 @@ router.get('/admin/settings', requireLogin, requireAdmin, async (req, res) => {
 router.put('/admin/settings/registration', requireLogin, requireAdmin, async (req, res) => {
   try {
     const { allowRegistration } = req.body;
-    await dbRun(
-      'INSERT OR REPLACE INTO settings (name, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)',
-      ['allow_registration', allowRegistration ? '1' : '0']
-    );
+    await setSetting('allow_registration', allowRegistration ? '1' : '0');
     res.json({ message: 'Registration setting updated' });
   } catch (error) {
     errorLogger.error({
@@ -330,6 +348,35 @@ router.delete('/admin/users/:id', requireLogin, requireAdmin, async (req, res) =
       userId: req.session.userId
     });
     res.status(500).json({ error: 'Unable to delete user' });
+  }
+});
+
+router.get('/admin/leads-token', requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const leadFormToken = await getSetting('lead_form_token', null);
+    res.json({ token: leadFormToken });
+  } catch (error) {
+    errorLogger.error({
+      message: 'Error loading lead form token',
+      stack: error.stack,
+      userId: req.session.userId
+    });
+    res.status(500).json({ error: 'Unable to load lead form token' });
+  }
+});
+
+router.post('/admin/leads-token', requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const token = crypto.randomBytes(24).toString('hex');
+    await setSetting('lead_form_token', token);
+    res.json({ token });
+  } catch (error) {
+    errorLogger.error({
+      message: 'Error generating lead form token',
+      stack: error.stack,
+      userId: req.session.userId
+    });
+    res.status(500).json({ error: 'Unable to generate lead form token' });
   }
 });
 

@@ -19,10 +19,32 @@ async function loadAdminPanel() {
   try {
     const [settings, users] = await Promise.all([fetchAdminSettings(), fetchAdminUsers()]);
     updateRegistrationToggle(settings.allowRegistration);
+    updateLeadTokenDisplay(settings.leadFormToken);
     renderAdminUsers(users);
   } catch (error) {
     console.error('Error loading admin panel:', error);
     showNotification('Unable to load admin settings', 'error');
+  }
+}
+
+function updateLeadTokenDisplay(token) {
+  const display = document.getElementById('lead-token-display');
+  if (!display) return;
+  display.textContent = token ? `Current token: ${token}` : 'No token generated yet. Click refresh to create one.';
+}
+
+async function generateLeadToken() {
+  try {
+    const response = await fetch('/auth/admin/leads-token', {
+      method: 'POST'
+    });
+    if (!response.ok) throw new Error('Could not generate lead token');
+    const data = await response.json();
+    updateLeadTokenDisplay(data.token);
+    showNotification('Lead form token generated');
+  } catch (error) {
+    console.error('Error generating lead token:', error);
+    showNotification('Unable to generate lead token', 'error');
   }
 }
 
@@ -207,5 +229,6 @@ async function submitAddUser(event) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('toggle-registration-btn')?.addEventListener('click', toggleRegistration);
   document.getElementById('btn-open-add-user')?.addEventListener('click', showAddUserForm);
+  document.getElementById('btn-generate-lead-token')?.addEventListener('click', generateLeadToken);
   document.getElementById('admin-add-user-form')?.addEventListener('submit', submitAddUser);
 });
