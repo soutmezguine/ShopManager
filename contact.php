@@ -67,6 +67,7 @@
                   <label for="message">Message *</label>
                   <textarea id="message" name="message" required></textarea>
                 </div>
+                <input type="hidden" name="redirect_to" value="<?php echo htmlspecialchars((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>">
                 <input type="hidden" name="token" value="REPLACE_WITH_YOUR_FORM_TOKEN">
                 <button type="submit" class="contact-form-submit">Send Message</button>
               </form>

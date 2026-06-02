@@ -86,10 +86,11 @@ function renderExternalContactResponse(res, status, title, message) {
 
 // Public contact form API endpoint
 router.post('/leads/contact', async (req, res) => {
-  const { name, phone_number, email, message, token } = req.body;
+  const { name, phone_number, email, message, token, redirect_to } = req.body;
   const headerToken = req.headers['x-lead-form-token'];
   const referer = req.headers.referer || '';
-  const isExternalContactForm = referer.includes('/contact.php');
+  const redirectTo = redirect_to || referer || '/contact.php';
+  const isExternalContactForm = referer.includes('/contact.php') || Boolean(redirect_to);
 
   const expectedToken = await getSetting('lead_form_token', null);
   if (!expectedToken || (token !== expectedToken && headerToken !== expectedToken)) {
@@ -135,12 +136,7 @@ router.post('/leads/contact', async (req, res) => {
     });
 
     if (isExternalContactForm) {
-      return renderExternalContactResponse(
-        res,
-        200,
-        'Message Received',
-        'Thank you! Your message has been received and will be reviewed shortly.'
-      );
+      return res.status(303).redirect(redirectTo);
     }
 
     res.render('contact', {
