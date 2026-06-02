@@ -50,19 +50,73 @@ router.get('/contact', async (req, res) => {
   }
 });
 
+async function pruneOldLeads() {
+  try {
+    await dbRun(`DELETE FROM leads WHERE created_at < datetime('now', '-30 days')`);
+  } catch (error) {
+    logger.info('Failed to prune old leads', { error: error.message });
+  }
+}
+
+function renderExternalContactResponse(res, status, title, message) {
+  res.status(status).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f7fb; color:#222; margin:0; padding:0; }
+    .page { max-width: 760px; margin: 60px auto; padding: 24px; background: #fff; border-radius: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.08); }
+    h1 { margin-top: 0; font-size: 28px; }
+    p { line-height: 1.6; }
+    a { color: #0073e6; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>${title}</h1>
+    <p>${message}</p>
+    <p><a href="/contact.php">Return to Contact Form</a></p>
+  </div>
+</body>
+</html>`);
+}
+
 // Public contact form API endpoint
 router.post('/leads/contact', async (req, res) => {
   const { name, phone_number, email, message, token } = req.body;
   const headerToken = req.headers['x-lead-form-token'];
+  const referer = req.headers.referer || '';
+  const isExternalContactForm = referer.includes('/contact.php');
 
   const expectedToken = await getSetting('lead_form_token', null);
   if (!expectedToken || (token !== expectedToken && headerToken !== expectedToken)) {
+    if (isExternalContactForm) {
+      return renderExternalContactResponse(
+        res,
+        403,
+        'Contact Submission Failed',
+        'Invalid or missing contact form token. Please contact the site administrator.'
+      );
+    }
+
     return res.status(403).render('contact', {
       message: 'Invalid or missing contact form token. Please contact the site administrator.'
     });
   }
 
   if (!name || !email || !message) {
+    if (isExternalContactForm) {
+      return renderExternalContactResponse(
+        res,
+        400,
+        'Contact Submission Failed',
+        'Please provide your name, email, and message.'
+      );
+    }
+
     return res.status(400).render('contact', {
       message: 'Please provide your name, email, and message.'
     });
@@ -80,6 +134,15 @@ router.post('/leads/contact', async (req, res) => {
       phone_number: phone_number || null
     });
 
+    if (isExternalContactForm) {
+      return renderExternalContactResponse(
+        res,
+        200,
+        'Message Received',
+        'Thank you! Your message has been received and will be reviewed shortly.'
+      );
+    }
+
     res.render('contact', {
       success: 'Thank you! Your message has been received and will be reviewed shortly.'
     });
@@ -89,6 +152,16 @@ router.post('/leads/contact', async (req, res) => {
       stack: error.stack,
       email
     });
+
+    if (isExternalContactForm) {
+      return renderExternalContactResponse(
+        res,
+        500,
+        'Contact Submission Failed',
+        'There was an error sending your message. Please try again later.'
+      );
+    }
+
     res.status(500).render('contact', {
       message: 'There was an error sending your message. Please try again later.'
     });
@@ -98,6 +171,7 @@ router.post('/leads/contact', async (req, res) => {
 // Lead management API for dashboard
 router.get('/leads/api', requireLogin, requirePermission('can_leads'), async (req, res) => {
   try {
+    await pruneOldLeads();
     const leads = await dbAll(`SELECT * FROM leads ORDER BY created_at DESC`);
     res.json(leads);
   } catch (error) {
@@ -107,6 +181,28 @@ router.get('/leads/api', requireLogin, requirePermission('can_leads'), async (re
       userId: req.session.userId
     });
     res.status(500).json({ error: 'Failed to fetch leads' });
+  }
+});
+
+router.delete('/leads/api/:id', requireLogin, requirePermission('can_leads'), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const lead = await dbGet('SELECT id FROM leads WHERE id = ?', [id]);
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+
+    await dbRun('DELETE FROM leads WHERE id = ?', [id]);
+    res.json({ message: 'Lead deleted' });
+  } catch (error) {
+    errorLogger.error({
+      message: 'Error deleting lead',
+      stack: error.stack,
+      leadId: id,
+      userId: req.session.userId
+    });
+    res.status(500).json({ error: 'Failed to delete lead' });
   }
 });
 

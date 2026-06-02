@@ -53,7 +53,10 @@ function renderLeads(leads) {
           <input type="checkbox" class="lead-contacted-checkbox" data-id="${lead.id}" ${lead.contacted ? 'checked' : ''}>
           Contacted
         </label>
-        <span class="lead-created">${new Date(lead.created_at).toLocaleString()}</span>
+        <div class="lead-card-actions">
+          <button type="button" class="lead-delete-button" data-id="${lead.id}">Delete</button>
+          <span class="lead-created">${new Date(lead.created_at).toLocaleString()}</span>
+        </div>
       </div>
       <div class="lead-card-row"><strong>${lead.customer_name}</strong></div>
       <div class="lead-card-row">${lead.email || ''}${lead.phone_number ? ' • ' + lead.phone_number : ''}</div>
@@ -72,6 +75,22 @@ function renderLeads(leads) {
       } catch (error) {
         console.error('Error updating lead status:', error);
         checkbox.checked = !checkbox.checked;
+      }
+    });
+
+    const deleteButton = card.querySelector('.lead-delete-button');
+    deleteButton?.addEventListener('click', async () => {
+      if (!window.confirm('Delete this lead? This cannot be undone.')) return;
+
+      try {
+        const response = await fetch(`/leads/api/${lead.id}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to delete lead');
+        loadLeads();
+      } catch (error) {
+        console.error('Error deleting lead:', error);
+        alert('Could not delete lead. Please try again.');
       }
     });
 
