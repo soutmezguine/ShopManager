@@ -839,6 +839,21 @@ body {
   display: none !important;
 }
 
+.admin-error-indicator {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background-color: #fdecea;
+  color: #b00020;
+  border: 1px solid #f5c2c7;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.admin-error-indicator.hidden {
+  display: none !important;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .main-container {

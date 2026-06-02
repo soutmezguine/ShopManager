@@ -16,6 +16,7 @@ function openAdminModal() {
 }
 
 async function loadAdminPanel() {
+  clearAdminError();
   try {
     const [settings, users] = await Promise.all([fetchAdminSettings(), fetchAdminUsers()]);
     updateRegistrationToggle(settings.allowRegistration);
@@ -23,8 +24,27 @@ async function loadAdminPanel() {
     renderAdminUsers(users);
   } catch (error) {
     console.error('Error loading admin panel:', error);
+    setAdminError('Unable to load admin settings.');
     showNotification('Unable to load admin settings', 'error');
   }
+}
+
+function getAdminErrorIndicator() {
+  return document.getElementById('admin-error-indicator');
+}
+
+function clearAdminError() {
+  const indicator = getAdminErrorIndicator();
+  if (!indicator) return;
+  indicator.textContent = '';
+  indicator.classList.add('hidden');
+}
+
+function setAdminError(message) {
+  const indicator = getAdminErrorIndicator();
+  if (!indicator) return;
+  indicator.textContent = message;
+  indicator.classList.remove('hidden');
 }
 
 function updateLeadTokenDisplay(token) {
@@ -41,9 +61,11 @@ async function generateLeadToken() {
     if (!response.ok) throw new Error('Could not generate lead token');
     const data = await response.json();
     updateLeadTokenDisplay(data.token);
+    clearAdminError();
     showNotification('Lead form token generated');
   } catch (error) {
     console.error('Error generating lead token:', error);
+    setAdminError('Unable to generate lead token.');
     showNotification('Unable to generate lead token', 'error');
   }
 }
@@ -66,9 +88,11 @@ async function toggleRegistration() {
     });
     if (!response.ok) throw new Error('Could not update registration setting');
     updateRegistrationToggle(!enabled);
+    clearAdminError();
     showNotification(`Registration ${!enabled ? 'enabled' : 'disabled'}`);
   } catch (error) {
     console.error('Error updating registration toggle:', error);
+    setAdminError('Unable to update registration setting.');
     showNotification('Unable to update registration setting', 'error');
   }
 }
@@ -129,9 +153,11 @@ function renderAdminUsers(users) {
           body: JSON.stringify(updates)
         });
         if (!response.ok) throw new Error('Permission update failed');
+        clearAdminError();
         showNotification('User permissions updated');
       } catch (error) {
         console.error('Error updating user permissions:', error);
+        setAdminError('Unable to save user permissions.');
         showNotification('Could not save user permissions', 'error');
       }
     });
@@ -146,9 +172,11 @@ function renderAdminUsers(users) {
           body: JSON.stringify({ password })
         });
         if (!response.ok) throw new Error('Reset failed');
+        clearAdminError();
         showNotification('Password reset successfully');
       } catch (error) {
         console.error('Error resetting password:', error);
+        setAdminError('Unable to reset password.');
         showNotification('Could not reset password', 'error');
       }
     });
@@ -160,10 +188,12 @@ function renderAdminUsers(users) {
           method: 'DELETE'
         });
         if (!response.ok) throw new Error('Delete failed');
+        clearAdminError();
         showNotification('User removed');
         loadAdminPanel();
       } catch (error) {
         console.error('Error removing user:', error);
+        setAdminError('Unable to remove user.');
         showNotification('Could not remove user', 'error');
       }
     });
@@ -216,12 +246,14 @@ async function submitAddUser(event) {
       const error = await response.json();
       throw new Error(error.error || 'Unable to create user');
     }
+    clearAdminError();
     showNotification('User created successfully');
     form.reset();
     form.classList.add('hidden');
     loadAdminPanel();
   } catch (error) {
     console.error('Error creating user:', error);
+    setAdminError(error.message || 'Could not create user');
     showNotification(error.message || 'Could not create user', 'error');
   }
 }

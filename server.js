@@ -34,6 +34,13 @@ app.set('views', path.join(__dirname, 'views'));
 async function startServer() {
   try {
     await initializeDatabase();
+    // Run additional safety checks and migrations (non-blocking but awaited)
+    try {
+      const { ensureAdminAndMigrations } = require('./scripts/ensure_admin');
+      await ensureAdminAndMigrations();
+    } catch (e) {
+      logger.info('Could not run ensure_admin checks', { error: e.message });
+    }
     
     // Routes
     app.use('/auth', require('./routes/auth'));

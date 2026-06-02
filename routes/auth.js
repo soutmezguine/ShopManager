@@ -19,6 +19,12 @@ async function setSetting(name, value) {
 
 const requireLogin = (req, res, next) => {
   if (!req.session.userId) {
+    // Treat admin routes as API endpoints and return JSON errors for fetch/XHR
+    const isAdminApi = req.originalUrl && req.originalUrl.indexOf('/admin') !== -1;
+    const wantsJson = isAdminApi || req.xhr || (req.headers.accept && req.headers.accept.indexOf('application/json') !== -1);
+    if (wantsJson) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     return res.redirect('/auth/login');
   }
   next();
@@ -26,13 +32,20 @@ const requireLogin = (req, res, next) => {
 
 const requireAdmin = async (req, res, next) => {
   if (!req.session.userId) {
+    const isAdminApi = req.originalUrl && req.originalUrl.indexOf('/admin') !== -1;
+    const wantsJson = isAdminApi || req.xhr || (req.headers.accept && req.headers.accept.indexOf('application/json') !== -1);
+    if (wantsJson) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     return res.redirect('/auth/login');
   }
 
   try {
     const user = await dbGet('SELECT is_admin FROM users WHERE id = ?', [req.session.userId]);
     if (!user || user.is_admin !== 1) {
-      return res.status(403).json({ error: 'Admin access required' });
+      const isAdminApi = req.originalUrl && req.originalUrl.indexOf('/admin') !== -1;
+      if (isAdminApi) return res.status(403).json({ error: 'Admin access required' });
+      return res.status(403).render('error', { message: 'Admin access required' });
     }
     next();
   } catch (error) {
