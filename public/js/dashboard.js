@@ -50,6 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAppointments();
   loadTodos();
 
+  if (document.querySelector('.nav-link[data-module="leads"]')) {
+    loadLeads();
+  }
+
   const dropdownToggle = document.getElementById('user-dropdown-toggle');
   const dropdownMenu = document.getElementById('user-dropdown-menu');
 

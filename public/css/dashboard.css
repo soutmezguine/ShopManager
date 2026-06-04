@@ -75,6 +75,25 @@ body {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--danger-color);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hidden {
+  display: none !important;
+}
+
 .nav-user {
   position: relative;
 }
@@ -568,13 +587,28 @@ body {
   font-size: 13px;
 }
 
-.admin-user-actions {
+..admin-user-actions {
   display: flex;
   justify-content: flex-end;
 }
 
 .admin-action-group {
   display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-db-actions {
+  display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }

@@ -20,7 +20,7 @@
           <a href="/" class="nav-link" data-module="vendors">🏢 Vendors</a>
         <% } %>
         <% if (permissions && permissions.can_leads) { %>
-          <a href="/" class="nav-link" data-module="leads">📬 Leads</a>
+          <a href="/" class="nav-link" data-module="leads">📬 Leads <span id="leads-badge" class="nav-badge hidden">0</span></a>
         <% } %>
       </div>
       <div class="nav-user">
@@ -398,6 +398,18 @@
             <p id="lead-token-display" class="small-text">Loading token...</p>
           </div>
           <button id="btn-generate-lead-token" class="btn btn-secondary btn-small">Generate / Refresh Token</button>
+        </div>
+
+        <div class="form-group admin-setting-row admin-db-row">
+          <div>
+            <label>Database Backup</label>
+            <p class="small-text">Download a local backup or restore a backup file from your machine.</p>
+          </div>
+          <div class="admin-db-actions">
+            <button id="btn-download-db-backup" class="btn btn-secondary btn-small">Download Backup</button>
+            <button id="btn-select-db-restore" class="btn btn-secondary btn-small">Restore Backup</button>
+            <input id="db-backup-file-input" type="file" accept=".sqlite,.db" class="hidden" />
+          </div>
         </div>
 
         <div class="admin-section">

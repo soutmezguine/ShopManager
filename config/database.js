@@ -316,5 +316,6 @@ function getDb() {
 
 module.exports = {
   getDb,
-  initializeDatabase
+  initializeDatabase,
+  dbPath
 };

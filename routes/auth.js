@@ -1,8 +1,13 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const multer = require('multer');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const router = express.Router();
 const { dbRun, dbGet, dbAll } = require('../utils/db-helpers');
+const { getDb, dbPath } = require('../config/database');
 const { logger, errorLogger } = require('../utils/logger');
 
 async function getSetting(name, defaultValue = '1') {
@@ -57,6 +62,73 @@ const requireAdmin = async (req, res, next) => {
     res.status(500).json({ error: 'Authorization failed' });
   }
 };
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
+
+function createSqliteBackup(db, destinationPath) {
+  return new Promise((resolve, reject) => {
+    if (typeof db.backup === 'function') {
+      db.backup(destinationPath, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    } else {
+      const quotedPath = JSON.stringify(destinationPath);
+      db.run(`VACUUM INTO ${quotedPath}`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    }
+  });
+}
+
+function restoreDatabaseFromFile(db, sourcePath) {
+  return new Promise((resolve, reject) => {
+    const tables = [
+      'users',
+      'appointments',
+      'parts_orders',
+      'returns_orders',
+      'vendors',
+      'leads',
+      'settings',
+      'todos',
+      'error_logs'
+    ];
+
+    const attachStatement = `ATTACH DATABASE ${JSON.stringify(sourcePath)} AS restoreDb`;
+    db.run(attachStatement, (attachErr) => {
+      if (attachErr) {
+        return reject(attachErr);
+      }
+
+      const sqlStatements = [];
+      sqlStatements.push('PRAGMA foreign_keys = OFF');
+      sqlStatements.push('BEGIN TRANSACTION');
+      tables.forEach((table) => {
+        sqlStatements.push(`DELETE FROM ${table}`);
+      });
+      tables.forEach((table) => {
+        sqlStatements.push(`INSERT INTO ${table} SELECT * FROM restoreDb.${table}`);
+      });
+      sqlStatements.push('DELETE FROM sqlite_sequence');
+      sqlStatements.push('INSERT INTO sqlite_sequence(name, seq) SELECT name, seq FROM restoreDb.sqlite_sequence');
+      sqlStatements.push('COMMIT');
+      sqlStatements.push('PRAGMA foreign_keys = ON');
+      sqlStatements.push('DETACH restoreDb');
+
+      db.exec(sqlStatements.join(';\n'), (execErr) => {
+        if (execErr) {
+          return reject(execErr);
+        }
+        resolve();
+      });
+    });
+  });
+}
 
 // Register page
 router.get('/register', async (req, res) => {
@@ -390,6 +462,56 @@ router.post('/admin/leads-token', requireLogin, requireAdmin, async (req, res) =
       userId: req.session.userId
     });
     res.status(500).json({ error: 'Unable to generate lead form token' });
+  }
+});
+
+router.get('/admin/db/backup', requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const db = getDb();
+    const backupPath = path.join(os.tmpdir(), `shopmanager-backup-${Date.now()}.sqlite`);
+
+    await createSqliteBackup(db, backupPath);
+    res.download(backupPath, 'shopmanager-backup.sqlite', (downloadErr) => {
+      fs.unlink(backupPath, () => {});
+      if (downloadErr) {
+        errorLogger.error({
+          message: 'Error sending database backup',
+          stack: downloadErr.stack,
+          userId: req.session.userId
+        });
+      }
+    });
+  } catch (error) {
+    errorLogger.error({
+      message: 'Error creating database backup',
+      stack: error.stack,
+      userId: req.session.userId
+    });
+    res.status(500).json({ error: 'Unable to create database backup' });
+  }
+});
+
+router.post('/admin/db/restore', requireLogin, requireAdmin, upload.single('backupFile'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Backup file is required' });
+  }
+
+  const tempRestorePath = path.join(os.tmpdir(), `shopmanager-restore-${Date.now()}.sqlite`);
+
+  try {
+    await fs.promises.writeFile(tempRestorePath, req.file.buffer);
+    const db = getDb();
+    await restoreDatabaseFromFile(db, tempRestorePath);
+    res.json({ message: 'Database restored successfully' });
+  } catch (error) {
+    errorLogger.error({
+      message: 'Error restoring database backup',
+      stack: error.stack,
+      userId: req.session.userId
+    });
+    res.status(500).json({ error: 'Unable to restore database backup' });
+  } finally {
+    fs.unlink(tempRestorePath, () => {});
   }
 });
 

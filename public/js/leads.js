@@ -3,6 +3,20 @@ let allLeads = [];
 const leadsSearch = document.getElementById('leads-search');
 const leadsList = document.getElementById('leads-list');
 const leadCount = document.getElementById('lead-count');
+const leadsBadge = document.getElementById('leads-badge');
+
+function updateLeadsBadge() {
+  if (!leadsBadge) return;
+
+  const uncontactedCount = allLeads.filter(lead => !lead.contacted).length;
+
+  if (uncontactedCount > 0) {
+    leadsBadge.textContent = uncontactedCount;
+    leadsBadge.classList.remove('hidden');
+  } else {
+    leadsBadge.classList.add('hidden');
+  }
+}
 
 function filterLeads() {
   const searchTerm = leadsSearch?.value.toLowerCase() || '';
@@ -25,6 +39,7 @@ async function loadLeads() {
 
     allLeads = await response.json();
     filterLeads();
+    updateLeadsBadge();
   } catch (error) {
     console.error('Error loading leads:', error);
     leadsList.innerHTML = '<p style="text-align: center; color: #999;">Error loading leads</p>';
@@ -72,15 +87,10 @@ function renderLeads(leads) {
           body: JSON.stringify({ contacted: checkbox.checked })
         });
         if (!response.ok) throw new Error('Failed to update lead');
-      } catch (error) {
-        console.error('Error updating lead status:', error);
-        checkbox.checked = !checkbox.checked;
-      }
-    });
 
-    const deleteButton = card.querySelector('.lead-delete-button');
-    deleteButton?.addEventListener('click', async () => {
-      if (!window.confirm('Delete this lead? This cannot be undone.')) return;
+            lead.contacted = checkbox.checked;
+            filterLeads();
+            updateLeadsBadge();
 
       try {
         const response = await fetch(`/leads/api/${lead.id}`, {

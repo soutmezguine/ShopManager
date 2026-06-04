@@ -53,6 +53,72 @@ function updateLeadTokenDisplay(token) {
   display.textContent = token ? `Current token: ${token}` : 'No token generated yet. Click refresh to create one.';
 }
 
+async function downloadDatabaseBackup() {
+  try {
+    const response = await fetch('/auth/admin/db/backup');
+    if (!response.ok) {
+      throw new Error('Unable to download backup');
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'shopmanager-backup.sqlite';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
+    showNotification('Database backup downloaded');
+  } catch (error) {
+    console.error('Error downloading database backup:', error);
+    setAdminError('Unable to download database backup.');
+    showNotification('Could not download backup', 'error');
+  }
+}
+
+async function restoreDatabaseBackup(file) {
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('backupFile', file);
+
+  try {
+    const response = await fetch('/auth/admin/db/restore', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Restore failed');
+    }
+
+    clearAdminError();
+    showNotification('Database restored successfully');
+  } catch (error) {
+    console.error('Error restoring database backup:', error);
+    setAdminError(error.message || 'Unable to restore database backup.');
+    showNotification('Could not restore backup', 'error');
+  }
+}
+
+function openRestoreFileDialog() {
+  const input = document.getElementById('db-backup-file-input');
+  input?.click();
+}
+
+async function handleRestoreFileChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!confirm('Restoring a backup will overwrite the current database. Continue?')) {
+    event.target.value = '';
+    return;
+  }
+  await restoreDatabaseBackup(file);
+  event.target.value = '';
+}
+
 async function generateLeadToken() {
   try {
     const response = await fetch('/auth/admin/leads-token', {
@@ -262,5 +328,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('toggle-registration-btn')?.addEventListener('click', toggleRegistration);
   document.getElementById('btn-open-add-user')?.addEventListener('click', showAddUserForm);
   document.getElementById('btn-generate-lead-token')?.addEventListener('click', generateLeadToken);
+  document.getElementById('btn-download-db-backup')?.addEventListener('click', downloadDatabaseBackup);
+  document.getElementById('btn-select-db-restore')?.addEventListener('click', openRestoreFileDialog);
+  document.getElementById('db-backup-file-input')?.addEventListener('change', handleRestoreFileChange);
   document.getElementById('admin-add-user-form')?.addEventListener('submit', submitAddUser);
 });
