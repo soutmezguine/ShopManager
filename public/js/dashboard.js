@@ -57,18 +57,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const dropdownToggle = document.getElementById('user-dropdown-toggle');
   const dropdownMenu = document.getElementById('user-dropdown-menu');
 
-  dropdownToggle?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownMenu?.classList.toggle('hidden');
+  // Toggle dropdown on click or Enter/Space for accessibility
+  const toggleDropdown = (e) => {
+    e?.stopPropagation();
+    if (!dropdownMenu) return;
+    dropdownMenu.classList.toggle('hidden');
+  };
+
+  dropdownToggle?.addEventListener('click', toggleDropdown);
+  dropdownToggle?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleDropdown(e);
+    }
   });
 
+  // Prevent clicks inside the menu from closing it
   dropdownMenu?.addEventListener('click', (e) => {
     e.stopPropagation();
   });
 
+  // Close dropdown when clicking outside or when Escape is pressed
   document.addEventListener('click', () => {
-    if (!dropdownMenu?.classList.contains('hidden')) {
-      dropdownMenu?.classList.add('hidden');
+    if (dropdownMenu && !dropdownMenu.classList.contains('hidden')) {
+      dropdownMenu.classList.add('hidden');
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dropdownMenu && !dropdownMenu.classList.contains('hidden')) {
+      dropdownMenu.classList.add('hidden');
     }
   });
 
