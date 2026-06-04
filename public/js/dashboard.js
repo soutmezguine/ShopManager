@@ -61,7 +61,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleDropdown = (e) => {
     e?.stopPropagation();
     if (!dropdownMenu) return;
-    dropdownMenu.classList.toggle('hidden');
+    // If menu is not attached to body, attach it so it cannot be clipped by parents
+    if (!document.body.contains(dropdownMenu)) {
+      document.body.appendChild(dropdownMenu);
+      dropdownMenu.style.position = 'absolute';
+      dropdownMenu.style.zIndex = '2000';
+    }
+
+    if (dropdownMenu.classList.contains('hidden')) {
+      // Position under the toggle
+      const rect = dropdownToggle.getBoundingClientRect();
+      dropdownMenu.style.left = `${rect.right - dropdownMenu.offsetWidth}px`;
+      dropdownMenu.style.top = `${rect.bottom + window.scrollY + 6}px`;
+      dropdownMenu.classList.remove('hidden');
+    } else {
+      dropdownMenu.classList.add('hidden');
+    }
   };
 
   dropdownToggle?.addEventListener('click', toggleDropdown);

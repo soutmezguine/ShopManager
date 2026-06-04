@@ -38,6 +38,7 @@ async function loadLeads() {
     if (!response.ok) throw new Error('Unable to fetch leads');
 
     allLeads = await response.json();
+    console.debug('Loaded leads from API', { count: allLeads.length, status: response.status });
     filterLeads();
     updateLeadsBadge();
   } catch (error) {
@@ -87,10 +88,18 @@ function renderLeads(leads) {
           body: JSON.stringify({ contacted: checkbox.checked })
         });
         if (!response.ok) throw new Error('Failed to update lead');
+        lead.contacted = checkbox.checked;
+        filterLeads();
+        updateLeadsBadge();
+      } catch (error) {
+        console.error('Error updating lead status:', error);
+        checkbox.checked = !checkbox.checked;
+      }
+    });
 
-            lead.contacted = checkbox.checked;
-            filterLeads();
-            updateLeadsBadge();
+    const deleteButton = card.querySelector('.lead-delete-button');
+    deleteButton?.addEventListener('click', async () => {
+      if (!window.confirm('Delete this lead? This cannot be undone.')) return;
 
       try {
         const response = await fetch(`/leads/api/${lead.id}`, {
