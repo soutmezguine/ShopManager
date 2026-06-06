@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dropdownMenu.classList.contains('hidden')) {
       // Position under the toggle
       const rect = dropdownToggle.getBoundingClientRect();
-      dropdownMenu.style.left = `${rect.right - dropdownMenu.offsetWidth}px`;
+      dropdownMenu.style.left = `${rect.left + window.scrollX}px`;
       dropdownMenu.style.top = `${rect.bottom + window.scrollY + 6}px`;
       dropdownMenu.classList.remove('hidden');
     } else {
